@@ -1,19 +1,17 @@
 import requests
 import json
-from demo_exp2.prompt import get_initial_prompt, get_update_prompt
 import ast
 import datetime
 import os
 import sys
+from pathlib import Path
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
-from server_gpt import predict
+from .prompts import get_initial_prompt, get_update_prompt
+from app.services.llm_client import predict
 
+URL_TO_TEXT_FILE = Path(__file__).resolve().parents[2] / "url_to_text.json"
 GPT_URL = "127.0.0.1"
 GPT_PORT = 7777
-
 
 def add_start_end_index(input_text, spans):
 
@@ -21,8 +19,9 @@ def add_start_end_index(input_text, spans):
 
     output_dict = dict()
     output_dict["classes"] = [
-        "UNFAMILIAR",
-        "SOMEWHAT FAMILIAR"
+        "FAMILIAR",
+        "SOMEWHAT FAMILIAR",
+        "UNFAMILIAR"
     ]
     output_dict["annotations"] = [[input_text, dict()]]
 
@@ -66,7 +65,6 @@ def get_response_initial_prompt(input_text, country, region, age_group,
 
     print(f"Identifying CSIs from the given text...")
     response = predict(payload)
-    
     messages.append({"role":"assistant", "content": str(response)})    
     return response, messages
 
@@ -80,31 +78,11 @@ def get_spans(initial_tokens):
         spans[label].append(' '.join(tokens))
     return spans
 
-def get_added_removed_spans(sp1, sp2):
-    added = {}
-    removed = {}
-
-    for familiarity in sp1.keys():
-        set1 = set(sp1[familiarity])
-        set2 = set(sp2[familiarity])
-        added[familiarity] = list(set2 - set1)
-        removed[familiarity] = list(set1 - set2)
-    
-    for key, values in removed.items():
-        if(values != []):
-            for value in values:
-                added['FAMILIAR'].append(value)
-
-    return added
-
-def get_explanations(response):
-    filtered_spans = filter_on_familiarity(response)
-    explanations = []
-
-    for span in filtered_spans:
-        explanations.append({"CSI": span['CSI'], "explanation": span['explanation']})
-
-    return explanations
+def dict2_minus_dict1(d1, d2):
+    difference = {}
+    for key in d2:
+        difference[key] = list(set(d2[key]) - set(d1[key]))
+    return difference
 
 def get_response_update_prompt(query_parameters):
 
@@ -113,8 +91,8 @@ def get_response_update_prompt(query_parameters):
 
     initial_spans = get_spans(annotations_initial)
     updated_spans = get_spans(annotations_updated)
-
-    difference_spans = get_added_removed_spans(initial_spans, updated_spans)
+    difference_spans = dict2_minus_dict1(initial_spans, updated_spans)
+    
     prompt = get_update_prompt(difference_spans)
 
     messages = query_parameters['messages']
@@ -126,7 +104,6 @@ def get_response_update_prompt(query_parameters):
 
     print(f"Identifying CSIs from the given text...")
     response = predict(payload)
-
     messages.append({"role":"assistant", "content": str(response)}) 
 
     response_json_format = response
@@ -136,12 +113,12 @@ def get_response_update_prompt(query_parameters):
     return query_parameters
 
 
-def get_response_from_backend_exp2(query_parameters):
+def get_response_from_backend_exp3(query_parameters):
 
     type_ = query_parameters['type']
-    url_to_text_path = os.path.join(parent_dir, 'url_to_text.json')
-    with open(url_to_text_path, 'r') as file:
+    with URL_TO_TEXT_FILE.open('r') as file:
         url_to_text = json.load(file)
+
     text = url_to_text[query_parameters['url']]
 
     country = query_parameters['country']
@@ -157,7 +134,6 @@ def get_response_from_backend_exp2(query_parameters):
     if(isinstance(messages, list) == False):
         messages = ast.literal_eval(query_parameters['messages'])
 
-    #print(query_parameters)
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
     if(type_ == 'fresh'):
@@ -166,8 +142,6 @@ def get_response_from_backend_exp2(query_parameters):
                                                          messages, previous=False)
         query_parameters['annotations_response'] = filter_and_add_start_end_indices(text, response)
         query_parameters['messages'] = messages
-        query_parameters['explanations'] = get_explanations(response)
-        # print(query_parameters)
         # json.dump(query_parameters, open(f'outputs/{type_}_{country}_{age_group}_{region}_{timestamp}.json','w'), indent=4)
     elif(type_ == 'old'):
         response, messages = get_response_initial_prompt(text, country, region, age_group, 
@@ -175,12 +149,9 @@ def get_response_from_backend_exp2(query_parameters):
                                                          messages, previous=True)
         query_parameters['annotations_response'] = filter_and_add_start_end_indices(text, response)
         query_parameters['messages'] = messages
-        query_parameters['explanations'] = get_explanations(response)
-        # print(query_parameters)
         # json.dump(query_parameters, open(f'outputs/{type_}_{country}_{age_group}_{region}_{timestamp}.json','w'), indent=4)
     elif(type_ == 'save_info'):    
         query_parameters = get_response_update_prompt(query_parameters)
-        # print(query_parameters)
         # json.dump(query_parameters, open(f'outputs/{type_}_{country}_{age_group}_{region}_{timestamp}.json','w'), indent=4)
 
     return query_parameters

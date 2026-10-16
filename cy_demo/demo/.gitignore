@@ -1,9 +1,0 @@
-/venv
-demo_exp1/__pycache__*
-*/__pycache__
-*/venv
-outputs/
-.env
-users.json
-*.pyc
-.DS_Store

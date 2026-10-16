@@ -1,15 +1,18 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from demo_exp1.backend import get_response_from_backend_exp1
-from demo_exp2.backend import get_response_from_backend_exp2
-from demo_exp3.backend import get_response_from_backend_exp3
+from app.experimentation_pipelines.base_localization.backend import get_response_from_backend_exp1
+from app.experimentation_pipelines.adaptive_profile.backend import get_response_from_backend_exp2
+from app.experimentation_pipelines.text_reformulation.backend import get_response_from_backend_exp3
 from pymongo import MongoClient
 import requests
 from bs4 import BeautifulSoup
 import datetime
 import json
+from pathlib import Path
 
 # take statics from env 
+
+USERS_FILE = Path(__file__).with_name("users.json")
 
 def extract_text_from_url(url):
     try:
@@ -29,11 +32,11 @@ loggedin_user = 'guest'
 
 
 def load_users():  
-    with open('users.json', 'r') as f:  
+    with USERS_FILE.open('r') as f:
         return json.load(f)  
   
 def save_users(users):  
-    with open('users.json', 'w') as f:  
+    with USERS_FILE.open('w') as f:
         json.dump(users, f, indent=4)
 
 

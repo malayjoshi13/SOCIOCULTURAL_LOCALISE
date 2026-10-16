@@ -1,19 +1,19 @@
 import requests
 import json
+from .prompts import get_initial_prompt, get_update_prompt
+import ast
 import datetime
 import os
 import sys
+from pathlib import Path
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
+from app.services.llm_client import predict
 
-from demo_exp1.prompt import get_initial_prompt, get_update_prompt
-import ast
-from server_gpt import predict
+URL_TO_TEXT_FILE = Path(__file__).resolve().parents[2] / "url_to_text.json"
 
 GPT_URL = "127.0.0.1"
 GPT_PORT = 7777
+
 
 def add_start_end_index(input_text, spans):
 
@@ -33,7 +33,8 @@ def add_start_end_index(input_text, spans):
         start_index = input_text.find(span["CSI"].lower())
         
         if start_index == -1:
-            entities_list.append([-1,-1, familiarity.upper()])
+            pass
+            #entities_list.append([-1,-1, familiarity.upper()])
         else:
             end_index = start_index + len(span["CSI"]) - 1
             entities_list.append([start_index, end_index, familiarity.upper()])
@@ -43,12 +44,9 @@ def add_start_end_index(input_text, spans):
 
 def filter_on_familiarity(response):
     spans = response["spans"]
-    if(spans != "None"):
-        response_filtered_spans = [span for span in spans if span['familiarity'].lower() != 'familiar']
-        return response_filtered_spans
-    else:
-        return []
-        
+    response_filtered_spans = [span for span in spans if span['familiarity'].lower() != 'familiar']
+
+    return response_filtered_spans
 
 def filter_and_add_start_end_indices(input_text, response):
     response_filtered_spans = filter_on_familiarity(response)
@@ -59,17 +57,16 @@ def get_response_initial_prompt(input_text, country, region, age_group,
                                 political_awareness, education_level, literature_preference, food_cuisine,
                                 messages, previous):
     
-    prompt = get_initial_prompt(input_text, country, region, age_group, 
-                                political_awareness, education_level, literature_preference, food_cuisine, 
-                                previous)
-  
+    prompt = get_initial_prompt(input_text, country, region, age_group, political_awareness, education_level, literature_preference, food_cuisine, previous)
+    
     messages.append({"role": "user", "content": prompt})
     payload = {
         'messages': messages
     }
-    
+
     print(f"Identifying CSIs from the given text...")
     response = predict(payload)
+    
     messages.append({"role":"assistant", "content": str(response)})    
     return response, messages
 
@@ -100,15 +97,6 @@ def get_added_removed_spans(sp1, sp2):
 
     return added
 
-def get_response_update_prompt(annotations_initial, annotations_updated, messages):
-    initial_spans = get_spans(annotations_initial)
-    updated_spans = get_spans(annotations_updated)
-    difference_spans = get_added_removed_spans(initial_spans, updated_spans)
-    
-    prompt = get_update_prompt(difference_spans)
-    messages.append({"role": "user", "content": prompt})
-    return messages
-
 def get_explanations(response):
     filtered_spans = filter_on_familiarity(response)
     explanations = []
@@ -118,31 +106,57 @@ def get_explanations(response):
 
     return explanations
 
-def get_response_from_backend_exp1(query_parameters):
+def get_response_update_prompt(query_parameters):
+
+    annotations_initial = query_parameters['annotations_updated']['token_block_initial']
+    annotations_updated = query_parameters['annotations_updated']['token_block_body']
+
+    initial_spans = get_spans(annotations_initial)
+    updated_spans = get_spans(annotations_updated)
+
+    difference_spans = get_added_removed_spans(initial_spans, updated_spans)
+    prompt = get_update_prompt(difference_spans)
+
+    messages = query_parameters['messages']
+    messages.append({"role": "user", "content": prompt})
+
+    payload = {
+        'messages': messages
+    }
+
+    print(f"Identifying CSIs from the given text...")
+    response = predict(payload)
+
+    messages.append({"role":"assistant", "content": str(response)}) 
+
+    response_json_format = response
+    for key in response_json_format.keys():
+        query_parameters[key] = response_json_format[key]
+
+    return query_parameters
+
+
+def get_response_from_backend_exp2(query_parameters):
 
     type_ = query_parameters['type']
-
-    if('text' not in query_parameters.keys()):
-        url_to_text_path = os.path.join(parent_dir, 'url_to_text.json')
-        with open(url_to_text_path, 'r') as file:
-            url_to_text = json.load(file)
-        text = url_to_text[query_parameters['url']]
-    else:
-        text = query_parameters['text']
+    with URL_TO_TEXT_FILE.open('r') as file:
+        url_to_text = json.load(file)
+    text = url_to_text[query_parameters['url']]
 
     country = query_parameters['country']
     age_group = query_parameters['age_group']
     region = query_parameters['region']
-    messages = query_parameters['messages']
 
     political_awareness = query_parameters['political_awareness']
     education_level = query_parameters['education_level']
     literature_preference = query_parameters['literature_preference']
     food_cuisine = query_parameters['food_cuisine']
 
+    messages = query_parameters['messages']
     if(isinstance(messages, list) == False):
-        messages = list(ast.literal_eval(messages))
+        messages = ast.literal_eval(query_parameters['messages'])
 
+    #print(query_parameters)
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
     if(type_ == 'fresh'):
@@ -150,11 +164,10 @@ def get_response_from_backend_exp1(query_parameters):
                                                          political_awareness, education_level, literature_preference, food_cuisine,
                                                          messages, previous=False)
         query_parameters['annotations_response'] = filter_and_add_start_end_indices(text, response)
-        query_parameters['explanations'] = get_explanations(response)
         query_parameters['messages'] = messages
+        query_parameters['explanations'] = get_explanations(response)
         # print(query_parameters)
         # json.dump(query_parameters, open(f'outputs/{type_}_{country}_{age_group}_{region}_{timestamp}.json','w'), indent=4)
-    
     elif(type_ == 'old'):
         response, messages = get_response_initial_prompt(text, country, region, age_group, 
                                                          political_awareness, education_level, literature_preference, food_cuisine,
@@ -164,12 +177,8 @@ def get_response_from_backend_exp1(query_parameters):
         query_parameters['explanations'] = get_explanations(response)
         # print(query_parameters)
         # json.dump(query_parameters, open(f'outputs/{type_}_{country}_{age_group}_{region}_{timestamp}.json','w'), indent=4)
-   
-    elif(type_ == 'save_info'):
-        annotations_initial = query_parameters['annotations_updated']['token_block_initial']
-        annotations_updated = query_parameters['annotations_updated']['token_block_body']
-        messages = get_response_update_prompt(annotations_initial, annotations_updated, messages)
-        query_parameters['messages'] = messages
+    elif(type_ == 'save_info'):    
+        query_parameters = get_response_update_prompt(query_parameters)
         # print(query_parameters)
         # json.dump(query_parameters, open(f'outputs/{type_}_{country}_{age_group}_{region}_{timestamp}.json','w'), indent=4)
 

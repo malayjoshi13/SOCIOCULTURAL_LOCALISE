@@ -1,0 +1,7 @@
+.env
+app/users.json
+**/__pycache__/
+*.pyc
+venv/
+outputs/
+.DS_Store

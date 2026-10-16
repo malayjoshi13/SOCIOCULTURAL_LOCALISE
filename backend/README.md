@@ -1,4 +1,4 @@
-# Culturally Yours Backend  
+# Backend  
   
 Flask backend service that extracts Culture-Specific Items (CSIs) from text/URLs using an LLM, and serves the `ner-annotator` frontend and Chrome extension.  
   
@@ -19,35 +19,35 @@ Flask backend service that extracts Culture-Specific Items (CSIs) from text/URLs
 
 ## TLDR; Quick run
 ```sh  
-cd cy_demo/demo  
+cd backend
 conda activate test1
-python server_gateway.py  
+python -m app.main
 ```  
 
 Server starts on `http://localhost:8081`
 
 Verify server health via:
-- Visiting on weblink: `http://localhost:8081`
+- Visiting on weblink: `http://localhost:8081/live`
 - or Running curl command: ```curl http://localhost:8081/live --> Expected: {"health_status":"live"}```
 
 
 ## Setup  
   
 ```sh  
-cd cy_demo/demo  
+cd backend
 conda create -n test1 python=3.10    # you can keep any environment name of your choice in place of "test1"
 conda activate test1
 pip install -r requirements.txt  
 ```  
   
-Create `cy_demo/demo/.env`:  
+Copy `.env.example` to `.env`, then provide your API key:
   
 ```env  
 OPENROUTER_API_KEY=sk-or-v1-<your-key>  
 DEPLOYMENT_NAME=openai/gpt-4o   # optional; this is the default  
 ```  
   
-Create `cy_demo/demo/users.json` (required by `/login` + `/register`):  
+Create `app/users.json` (required by `/login` + `/register`):
   
 ```json  
 {}  
@@ -56,7 +56,7 @@ Create `cy_demo/demo/users.json` (required by `/login` + `/register`):
 ## Run  
   
 ```sh  
-python server_gateway.py  
+python -m app.main
 ```  
   
 Server starts on `http://localhost:8081`. Verify:  
@@ -82,7 +82,7 @@ Windows CMD (single line, escaped quotes):
 curl -X POST "http://localhost:8081/gateway?backend_endpoint=backend_exp1" -H "Content-Type: application/json" -d "{\"type\":\"fresh\",\"text\":\"Your article text here\",\"country\":\"USA\",\"age_group\":\"Adult (18+)\",\"region\":\"Urban\",\"messages\":[],\"political_awareness\":\"No\",\"education_level\":\"Primary\",\"literature_preference\":\"English\",\"food_cuisine\":\"American\"}"  
 ```  
   
-On success you'll see `Using gpt4o in the backend !!!` printed in the server console. The exact `fresh` payload fields are defined in `demo_exp1/backend.py`.  
+On success you'll see `Using gpt4o in the backend !!!` printed in the server console. The exact `fresh` payload fields are defined in `app/experimentation_pipelines/base_localization/backend.py`.
   
 ## Notes  
   
