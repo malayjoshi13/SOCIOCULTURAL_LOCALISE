@@ -1,39 +1,33 @@
-# CULTURALLY YOURS: A Reading Assistant for Cross-Cultural Content
-[Paper](https://aclanthology.org/2025.coling-demos.21/) | [Demo](https://www.youtube.com/watch?v=OVbnilgHaCU)
+# SOCIOCULTURAL_LOCALISE
 
-*Saurabh Kumar Pandey, Harshit Budhiraja, Sougata Saha, Monojit Choudhury*\
-Accepted at [The 31st International Conference on Computational Linguistics (COLING 2025)](https://coling2025.org/)
+**Exploring context-aware localisation of educational content**
 
-# Abstract
-Users from diverse cultural backgrounds frequently
-face challenges in understanding content
-from various online sources written by people
-from different cultures. This paper presents
-CULTURALLY YOURS (CY), a first-of-its-kind
-cultural reading assistant tool designed to identify
-culture-specific items (CSIs) for users from
-varying cultural contexts. By leveraging principles
-of relevance feedback and using culture as
-a prior, our tool personalizes to the user’s preferences
-based on their interaction with the tool.
-CY can use any LLM capable of reasoning
-with the user’s cultural background in English based
-prompts as the back-end. Using culture
-as part of the prompt, CY iteratively refines
-the prompt as the user keeps interacting with
-the system. In this demo, we use GPT-4o as
-the back-end. We also conducted a user study
-across 13 users from 8 different geographies.
-The results demonstrate CY’s effectiveness in
-enhancing user engagement and personalization
-alongside comprehension of cross-cultural
-content.
+## Overview
+
+SOCIOCULTURAL_LOCALISE explores methods for adapting educational content to learners' sociocultural contexts, with the aim of improving comprehension, relevance, and accessibility while preserving pedagogical intent.
+
+The project investigates how contextual information—including language, dialect, cultural references, local environment, lived experiences, and prior knowledge—can inform the interpretation and adaptation of educational material.
 
 
-## Sample links
-- https://www.bbc.com/news/world-us-canada-67285325
-- https://www.bbc.com/news/world-us-canada-67949560
-- https://abcnews.go.com/US/culture-wars-identity-center-politics-america/story?id=100768380
-- https://www.thenationalnews.com/lifestyle/food/2024/09/19/michelin-guide-abu-dhabi-food-festival/
-- https://www.dayoutdubai.ae/blog/safari/traditional-food-of-uae/
-- https://www.khaleejtimes.com/uae/education/in-love-with-arab-culture-why-abu-dhabi-is-attracting-students-from-the-us
+## Technical Direction & Status
+
+This project investigates the extension of existing cross-cultural content understanding approaches to educational localisation. Initial work focuses on analysing the upstream implementation, identifying reusable components, and evaluating potential extensions through narrowly scoped educational use cases.
+
+Areas of investigation include:
+
+- **Contextual reference identification:** Detecting content elements that may be unfamiliar or inaccessible to a target learner.
+- **Context-aware adaptation:** Generating explanations and locally relevant alternatives informed by the learner's context.
+- **Pedagogical preservation:** Maintaining conceptual accuracy, curriculum alignment, and intended learning outcomes during adaptation.
+- **Context representation and integration:** Investigating how learner and environmental context can be collected, structured, validated, and incorporated into the adaptation pipeline.
+- **Human-in-the-loop validation:** Incorporating teacher and community input to evaluate contextual appropriateness and educational quality.
+
+The implementation scope, system architecture, and evaluation methodology will evolve based on these investigations.
+
+
+## Acknowledgements
+
+This project builds on [CULTURALLY YOURS: A Reading Assistant for Cross-Cultural Content](https://aclanthology.org/2025.coling-demos.21/) by Saurabh Kumar Pandey, Harshit Budhiraja, Sougata Saha, and Monojit Choudhury (COLING 2025), which identifies culture-specific items in general text and personalises their explanations using readers' cultural backgrounds and interaction feedback.
+
+This repository explores extending these approaches to educational content, accounting for learner context and pedagogical objectives.
+
+The original authors retain credit for their work. Refer to the [upstream repository](https://github.com/skp1999/CULTURALLY_YOURS) for implementation details and licensing terms. Additional attribution will follow the applicable licence and contribution requirements.
