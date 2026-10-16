@@ -2,7 +2,7 @@
   
 A customizable Named Entity Recognition (NER) annotation tool built with  
 Vue.js (Vue 3 + Quasar). It lets users annotate text with entity labels,  
-compare initial and updated annotations, and pairs with the `cy_demo`  
+compare initial and updated annotations, and pairs with the `backend`
 Flask backend (port `8081`) which annotates culture-specific items (CSIs)  
 in web text.  
   
@@ -58,26 +58,35 @@ yarn --ignore-engines   # needed on Node 14 — see Troubleshooting
 yarn serve  
 ```  
   
-`yarn serve` maps to `vue-cli-service serve`. Open the URL printed under  
-`App running at:` — it **must include the `/ner-annotator/` suffix** because  
-`publicPath` is `/ner-annotator/` in `vue.config.js`.  
-  
+Open the URL printed under `App running at:` — it **must include the `/ner-annotator/` suffix** because `publicPath` is `/ner-annotator/` in `vue.config.js`.  
 - e.g. `http://localhost:8080/ner-annotator/`  
 - If 8080 is busy, it auto-bumps to 8081/8082 — use whatever is printed.  
-  
-## 3. Backend (cy_demo)  
+
+### Try the Application
+Once NER Annotator opens in your browser, select a country, age group, region and paste one of these sample URLs into the input field:
+- https://www.bbc.com/news/world-us-canada-67285325
+- https://www.bbc.com/news/world-us-canada-67949560
+- https://abcnews.go.com/US/culture-wars-identity-center-politics-america/story?id=100768380
+- https://www.thenationalnews.com/lifestyle/food/2024/09/19/michelin-guide-abu-dhabi-food-festival/
+- https://www.dayoutdubai.ae/blog/safari/traditional-food-of-uae/
+- https://www.khaleejtimes.com/uae/education/in-love-with-arab-culture-why-abu-dhabi-is-attracting-students-from-the-us
+
+Then click the arrow button to analyze the article.
+
+
+## 3. Backend
   
 URL analysis requires the Flask backend. It **must** bind port **8081**  
 because `src/components/StartPage.vue` hardcodes  
 `fetch("http://127.0.0.1:8081/gateway")`.  
   
-> **Startup order matters:** start `cy_demo` FIRST (it takes 8081), then run  
+> **Startup order matters:** start `backend` FIRST (it takes 8081), then run
 > `yarn serve` — otherwise the frontend grabs 8081 and Flask fails to bind.  
   
 ```sh  
 # Terminal 1 — backend  [header-4](#header-4)
-cd cy_demo/demo  
-python server_gateway.py    # occupies 0.0.0.0:8081  
+cd backend
+python -m app.main          # occupies 0.0.0.0:8081
 # verify: http://127.0.0.1:8081/live → {"health_status":"live"}  [header-5](#header-5)
   
 # Terminal 2 — frontend  [header-6](#header-6)
@@ -114,7 +123,7 @@ yarn config set ignore-engines true && yarn
 ### Frontend opened on 8081; backend fails with "access a socket in a way forbidden"  
   
 Port conflict — the frontend stole the backend's 8081. Stop `yarn serve`  
-(Ctrl+C), start `server_gateway.py` first, then restart `yarn serve`.  
+(Ctrl+C), start `python -m app.main` first, then restart `yarn serve`.
   
 ```bat  
 netstat -ano | findstr ":808"      :: find the PID  
@@ -124,7 +133,7 @@ taskkill /PID <pid> /F             :: kill it if needed
 ### Blank page after submitting a URL  
   
 Backend `POST /gateway` returns `null`. Resolved by the backend-side  
-`backend_endpoint` default in `server_gateway.py` (see `cy_demo/CHANGE.md`).  
+`backend_endpoint` default in `backend/app/main.py`.
 If it recurs, check DevTools → Network → the `/gateway` response body.  
   
 ### Cosmetic warnings on `yarn serve` — safe to ignore  
