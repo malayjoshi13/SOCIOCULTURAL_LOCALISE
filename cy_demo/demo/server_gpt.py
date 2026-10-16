@@ -1,36 +1,27 @@
-from openai import AzureOpenAI
+from openai import OpenAI
 import json
 import os
 import requests
+from dotenv import load_dotenv
 
+load_dotenv()
 
-def get_deployment_and_client(model):
-
-    api_key = os.getenv("AZURE_OPENAI_KEY")
-    endpoint = os.getenv("ENDPOINT_URL")
-
-    if(model == 'gpt35'):
-        deployment = os.getenv("DEPLOYMENT_NAME", "gpt35turbo") #gpt35turbo, gpt-4-turbo
-        client = AzureOpenAI(
-            azure_endpoint=endpoint,
-            api_key=api_key, #azure_ad_token_provider=token_provider,
-            api_version="2024-05-01-preview", #2024-02-15-preview, 2024-05-01-preview
-        )
-    elif(model == 'gpt4'):
-        deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4-turbo") 
-        client = AzureOpenAI(
-            azure_endpoint=endpoint,
-            api_key=api_key, #azure_ad_token_provider=token_provider,
-            api_version="2024-02-15-preview", #2024-02-15-preview, 2024-05-01-preview
-        )
-    elif(model == 'gpt4o'):
-        deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o") 
-        client = AzureOpenAI(
-            azure_endpoint=endpoint,
-            api_key=api_key, #azure_ad_token_provider=token_provider,
-            api_version="2024-02-15-preview", #2024-02-15-preview, 2024-05-01-preview
-        )
-    
+def get_deployment_and_client(model):  
+  
+    api_key = os.getenv("OPENROUTER_API_KEY")  
+  
+    client = OpenAI(  
+        base_url="https://openrouter.ai/api/v1",  
+        api_key=api_key,  
+    )  
+  
+    if model == 'gpt35':  
+        deployment = os.getenv("DEPLOYMENT_NAME", "openai/gpt-3.5-turbo")  
+    elif model == 'gpt4':  
+        deployment = os.getenv("DEPLOYMENT_NAME", "openai/gpt-4-turbo")  
+    elif model == 'gpt4o':  
+        deployment = os.getenv("DEPLOYMENT_NAME", "openai/gpt-4o")  
+  
     return deployment, client
 
 

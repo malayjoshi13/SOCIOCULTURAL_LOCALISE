@@ -28,12 +28,12 @@ CORS(app)
 loggedin_user = 'guest'
 
 
-def load_users():
-    with open('/home/azureuser/deployments/deployment/cy_demo/demo/users.json', 'r') as f:
-        return json.load(f)
-
-def save_users(users):
-    with open('/home/azureuser/deployments/deployment/cy_demo/demo/users.json', 'w') as f:
+def load_users():  
+    with open('users.json', 'r') as f:  
+        return json.load(f)  
+  
+def save_users(users):  
+    with open('users.json', 'w') as f:  
         json.dump(users, f, indent=4)
 
 
@@ -81,9 +81,16 @@ def register():
 @app.route('/gateway', methods=['POST'])
 def predict():
     query_parameters = request.json
-    backend_endpoint = request.args.get('backend_endpoint')
+    backend_endpoint = request.args.get('backend_endpoint') or 'backend_exp1'
     env = request.args.get('env')
-    
+
+    # ===== ADD THESE DEBUG LINES =====  
+    print("ARGS:", dict(request.args))                 # shows query params (?backend_endpoint=...)  
+    print("backend_endpoint =", backend_endpoint)  
+    print("env =", env)  
+    print("BODY keys:", list(query_parameters.keys()) if query_parameters else None)  
+    # ================================= 
+        
     if backend_endpoint == 'backend_exp1':
         response = get_response_from_backend_exp1(query_parameters)
     elif backend_endpoint == 'backend_exp2':
@@ -92,6 +99,10 @@ def predict():
         response = get_response_from_backend_exp3(query_parameters)
     else :
         response = None
+
+    # ===== AND HERE =====  
+    print("RESPONSE:", response)   # will print None if routing failed  
+    # =====================  
 
     if env != 'prod':    
         return jsonify(response)
