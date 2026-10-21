@@ -2,6 +2,13 @@ import os
 import json
 
 
+# This function defines: 
+# - Role of a Cultural-mediator based on user-inputted context of country, region and age
+# - Task of CSI identification
+# - Task of Familiarity classification
+# - Task of Reason generation
+# - Task of Short explanations generation
+# - Expected JSON structure
 def get_initial_prompt(text, country, region, age_group, 
                        political_awareness, education_level, literature_preference, food_cuisine, 
                        previous=False):
