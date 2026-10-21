@@ -87,14 +87,55 @@ curl -X POST "http://localhost:8081/gateway?backend_endpoint=backend_exp1" -H "C
 On success you'll see `Using gpt4o in the backend !!!` printed in the server console. The exact `fresh` payload fields are defined in `app/experimentation_pipelines/base_localization/backend.py`.
 
 
+## Experimentation Pipelines
+This backend provides following three experimentation pipelines. 
+
+These pipelines are not separate servers or models. They are alternative prompt and response-processing strategies exposed through the same `/gateway` API. All use the shared LLM client, configured to use GPT-4o by default.
+
+### 1. Base Localization
+
+Identifies cultural references that may be unfamiliar based on the user's country, age group, and rural/urban region.
+
+After the first analysis, the user’s annotation feedback is added to the conversation history. Thus, for subsequent analyses within the same session, the pipeline uses this history to personalize CSI identification.
+
+For each identified CSI, it returns:
+- CSI text
+- Familiarity classification
+- Reason for the classification
+- Short explanation of the CSI
+
+Example:
+
+```text
+CSI: Iowa caucus
+Familiarity: Unfamiliar
+Reason: This political process may be uncommon in the user’s country.
+Explanation: A local political meeting used to select a party candidate.
+```
+
+### 2. Adaptive Profile
+Performs the same CSI identification and explanation as ```Base Localization```, and additionally also attempts to infer more about the user and updating their profile by deeper analysis of annotation corrections.
+
+It currently attempts to infer following more details:
+- Political awareness
+- Food/cuisine familiarity
+
+These inferred attributes can be included in subsequent prompts. This approach is experimental because broad user attributes inferred from limited feedback may be inaccurate.
+
+### 3. text_reformulation
+Performs the same CSI identification and explanation as ```Base Localization```, and additionally rewrites the entire text to be culturally adapted for the user.
+
+This gets possible through the feedback step which attempts to infer more profile attributes:
+- Political awareness
+- Education level
+- Literature preference
+- Food/cuisine preference
+
+This pipeline is intended for full content localization rather than only highlighting unfamiliar words.
+
+
 ## Select an Experimentation Pipeline
-
-This backend provides three experimentation pipelines:
-- `backend_exp1` → `base_localization`
-- `backend_exp2` → `adaptive_profile`
-- `backend_exp3` → `text_reformulation`
-
-There are two ways to test a pipeline.
+There are two ways to select and test the above mentioned 3 experimentation pipelines:
 
 ### Option 1: Use curl
 
