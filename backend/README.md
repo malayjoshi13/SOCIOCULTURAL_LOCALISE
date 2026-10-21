@@ -53,6 +53,7 @@ Create `app/users.json` (required by `/login` + `/register`):
 {}  
 ```  
   
+
 ## Run  
   
 ```sh  
@@ -66,6 +67,7 @@ curl http://localhost:8081/live
 # → {"health_status":"live"}  [header-2](#header-2)
 ```  
   
+
 ## Test `/gateway`  
   
 Linux/macOS (bash):  
@@ -83,7 +85,61 @@ curl -X POST "http://localhost:8081/gateway?backend_endpoint=backend_exp1" -H "C
 ```  
   
 On success you'll see `Using gpt4o in the backend !!!` printed in the server console. The exact `fresh` payload fields are defined in `app/experimentation_pipelines/base_localization/backend.py`.
-  
+
+
+## Select an Experimentation Pipeline
+
+This backend provides three experimentation pipelines:
+- `backend_exp1` → `base_localization`
+- `backend_exp2` → `adaptive_profile`
+- `backend_exp3` → `text_reformulation`
+
+There are two ways to test a pipeline.
+
+### Option 1: Use curl
+
+For example, to test `adaptive_profile`, send a `POST` request with `backend_endpoint=backend_exp2`:
+
+```sh
+curl -X POST "http://127.0.0.1:8081/gateway?backend_endpoint=backend_exp2" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"fresh","url":"https://www.bbc.com/news/world-us-canada-67285325","country":"India","age_group":"Adult (18+)","region":"Urban","messages":[],"political_awareness":"No","education_level":"Primary","literature_preference":"English","food_cuisine":"Indian"}'
+```
+
+Change the query parameter to test another pipeline:
+
+```text
+backend_endpoint=backend_exp1
+backend_endpoint=backend_exp2
+backend_endpoint=backend_exp3
+```
+
+The `/gateway` endpoint cannot be tested by opening it in a browser address bar because the browser sends a `GET` request, while `/gateway` requires `POST`.
+
+### Option 2: Use the NER Annotator UI
+
+The NER Annotator UI currently does not send the `backend_endpoint` parameter or provide a pipeline selector. Requests therefore use the default configured in `app/main.py`:
+
+```python
+backend_endpoint = request.args.get("backend_endpoint") or "backend_exp1"
+```
+
+To test `adaptive_profile` through the UI, change the default to:
+
+```python
+backend_endpoint = request.args.get("backend_endpoint") or "backend_exp2"
+```
+
+Restart the backend after changing it:
+
+```sh
+cd backend
+python -m app.main
+```
+
+Requests that omit `backend_endpoint` will now use `adaptive_profile`.
+
+
 ## Notes  
   
 - **MongoDB**: only used when you pass `env=prod` to `/gateway` — it logs request/response traces to `mongodb://localhost:27017/` (`user_data` db). Connection failures are caught and printed, not fatal.  
