@@ -72,6 +72,7 @@ import ClassesBlock from "./ClassesBlock.vue";
 import TokenManager from "./token-manager";
 import TreebankTokenizer from "treebank-tokenizer";
 import eventBus from './eventBus';
+import { API_BASE_URL } from "../config/api";
 
 export default {
   name: "AnnotationPage",
@@ -279,7 +280,7 @@ export default {
 
       
 
-      fetch("http://172.206.0.14:8081/gateway", {
+      fetch(`${API_BASE_URL}/gateway`, {
         method: 'POST', 
         headers: {
           'Content-Type': 'application/json',  

@@ -49,6 +49,7 @@
 import { mapMutations } from "vuex";
 import Loader from './Loader.vue';
 import eventBus from './eventBus';
+import { API_BASE_URL } from "../config/api";
 
 export default {
   name: "StartPage",
@@ -143,7 +144,7 @@ export default {
       this.config = eventBus.value.config || [];
 
       if (url) {
-        fetch("http://127.0.0.1:8081/gateway", {
+        fetch(`${API_BASE_URL}/gateway`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
