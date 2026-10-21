@@ -6,8 +6,7 @@
 
 SOCIOCULTURAL_LOCALISE explores methods for adapting educational content to learners' sociocultural contexts, with the aim of improving comprehension, relevance, and accessibility while preserving pedagogical intent.
 
-The project investigates how contextual information—including language, dialect, cultural references, local environment, lived experiences, and prior knowledge—can inform the interpretation and adaptation of educational material.
-
+The project investigates how contextual information—including language, dialect, cultural references, local environments, lived experiences, and prior knowledge—can inform the interpretation and adaptation of educational material for diverse learning contexts.
 
 ## Technical Direction & Status
 
