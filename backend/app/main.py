@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from app.experimentation_pipelines.base_localization.backend import get_response_from_backend_exp1
-from app.experimentation_pipelines.adaptive_profile.backend import get_response_from_backend_exp2
-from app.experimentation_pipelines.text_reformulation.backend import get_response_from_backend_exp3
+from app.experimentation_pipelines.exp1.backend import get_response_from_backend_exp1
+from app.experimentation_pipelines.exp2.backend import get_response_from_backend_exp2
+from app.experimentation_pipelines.exp3.backend import get_response_from_backend_exp3
 from pymongo import MongoClient
 import requests
 from bs4 import BeautifulSoup

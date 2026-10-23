@@ -1,14 +1,25 @@
-import os
-import json
-
-
-# This function defines: 
-# - Role of a Cultural-mediator based on user-inputted context of country, region and age
-# - Task of CSI identification
-# - Task of Familiarity classification
-# - Task of Reason generation
-# - Task of Short explanations generation
-# - Expected JSON structure
+# This function constructs the prompt for the initial and subsequent 
+# content-analysis interactions with the user.
+#
+# This prompt:
+# - Assigns the model the role of a cultural mediator responsible for
+#   identifying culture-specific items (CSIs), classifying their familiarity,
+#   justifying their identification, and providing concise explanations.
+#
+# - During the initial interaction (previous=False), to identify CSIs via `get_initial_prompt` function,
+#   it instructs the model to use only the user's basic demographic information (like country, region, and age group).
+# - Other user profile attributes (namely, political_awareness, education_level, literature_preference, 
+#   and food_cuisine, with respective default values of "No", "Primary", "English" and "American")
+#   are intentionally ignored to be used during this first interaction (when previous=False) AS WELL AS during 
+#   subsequent interactions (when previous=True) also.
+# 
+# - During subsequent interactions (previous=True), to identify CSIs via `get_initial_prompt` function,
+#   it still: 1) uses only basic demographic description (like age, country and region),
+#   and 2) other user profile attributes (like political_awareness, education_level, literature_preference, and food_cuisine)
+#   are accepted but intentionally ignored to be used, 3) while also instructing the model 
+#   to consider user's prior interaction history (aka appended selected or deselected spans).
+#   This last instruction is the only new thing within subsequent interactions in comparison to first interaction.
+# - Defines the required JSON response structure.
 def get_initial_prompt(text, country, region, age_group, 
                        political_awareness, education_level, literature_preference, food_cuisine, 
                        previous=False):
@@ -54,6 +65,16 @@ def get_initial_prompt(text, country, region, age_group,
     return prompt
 
 
+# This function constructs a profile-update prompt when user 
+# saves selected or deselected spans in NER Annotator UI (frontend).
+#
+# This prompt is directly appended to the conversation history (aka selected or deselected spans)
+# in `messages`, without inferring broader profile attributes or explicitly interpreting why user 
+# selected or deselected each span.
+#
+# For subsequent content-analysis interactions, the instruction `task1_previous` present in
+# `get_initial_prompt()` function uses this prompt to tell the model to consider this accumulated 
+# interaction history when identifying and explaining CSIs.
 def get_update_prompt(difference_spans):
 
     text1 = f"On further understanding, I observe the following things."

@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
-
 from .prompts import get_initial_prompt, get_update_prompt
 import ast
 from app.services.llm_client import predict
+from app.utils.save_result import saving_result
 
 URL_TO_TEXT_FILE = Path(__file__).resolve().parents[2] / "url_to_text.json"
 
@@ -13,7 +13,7 @@ URL_TO_TEXT_FILE = Path(__file__).resolve().parents[2] / "url_to_text.json"
 
 # This function collates user-inputted details (of country, region, age_group), 
 # builds the prompt (via fn "get_initial_prompt"), 
-# and calls the model (via fn "get_initial_prompt"),
+# and calls the model (via fn "get_initial_prompt")
 def get_response_initial_prompt(input_text, country, region, age_group, 
                                 political_awareness, education_level, literature_preference, food_cuisine,
                                 messages, previous):
@@ -31,6 +31,7 @@ def get_response_initial_prompt(input_text, country, region, age_group,
     
     print(f"Identifying CSIs from the given text...")
     response = predict(payload)
+
     messages.append({"role":"assistant", "content": str(response)})    
     return response, messages
 
@@ -61,7 +62,7 @@ def add_start_end_index(input_text, spans):
         start_index = input_text.find(span["CSI"].lower())
         
         if start_index == -1:
-            entities_list.append([-1,-1, familiarity.upper()])
+            pass
         else:
             end_index = start_index + len(span["CSI"]) - 1
             entities_list.append([start_index, end_index, familiarity.upper()])
@@ -153,7 +154,7 @@ def get_response_update_prompt(annotations_initial, annotations_updated, message
 
 # ----------------------------------------------------------------------------------------------------------------------------
 
-# Main function orchestrating this "base_localization" experiment pipeline.
+# Main function orchestrating this "exp1" experiment pipeline.
 
 # Retrieve the input text either from a URL-to-text mapping or directly from user-provided text.
 # Extract the user's attributes and conversation history.
@@ -178,13 +179,13 @@ def get_response_from_backend_exp1(query_parameters):
     country = query_parameters['country']
     age_group = query_parameters['age_group']
     region = query_parameters['region']
-    messages = query_parameters['messages']
 
     political_awareness = query_parameters['political_awareness']
     education_level = query_parameters['education_level']
     literature_preference = query_parameters['literature_preference']
     food_cuisine = query_parameters['food_cuisine']
 
+    messages = query_parameters['messages']
     if(isinstance(messages, list) == False):
         messages = list(ast.literal_eval(messages))
 
@@ -204,6 +205,10 @@ def get_response_from_backend_exp1(query_parameters):
         query_parameters['explanations'] = get_explanations(response)
         query_parameters['messages'] = messages
 
+        saving_result(f"response_fresh_bk1", response)
+        saving_result(f"query_parameters_fresh_bk1", query_parameters)
+        saving_result(f"messages_fresh_bk1", messages)                  
+
     elif(type_ == 'save_info'):
         # Upon receiving a 'type_ = save_info' request from ner-annotator, the backend converts those differences into a feedback prompt and appends it to the conversation messages.
         # The LLM is not called during this step, and the feedback is not persistently stored in a database.
@@ -212,15 +217,21 @@ def get_response_from_backend_exp1(query_parameters):
         messages = get_response_update_prompt(annotations_initial, annotations_updated, messages)
         query_parameters['messages'] = messages
 
+        saving_result(f"query_parameters_save_info_bk1", query_parameters)
+        saving_result(f"messages_save_info_bk1", messages)  
+
     elif(type_ == 'old'):
-        # Upon receiving an 'type_ = old' request from ner-annotator, the backend uses the same inference flow as "fresh", 
-        # but passes previous=True to select the history-aware prompting (uaing the earlier conversation and user corrections), 
-        # allowing it to personalize its next CSI classifications.
+        # Upon receiving an 'type_ = old' request from ner-annotator, the backend builds the prompt using same inference flow of "get_initial_prompt" function (as used for type_="fresh"), 
+        # but this time passes "previous=True" to use the earlier user interactions, allowing it to personalize its next CSI classifications.
         response, messages = get_response_initial_prompt(text, country, region, age_group, 
                                                          political_awareness, education_level, literature_preference, food_cuisine,
                                                          messages, previous=True)
         query_parameters['annotations_response'] = filter_and_add_start_end_indices(text, response)
         query_parameters['explanations'] = get_explanations(response)
         query_parameters['messages'] = messages
+
+        saving_result(f"response_old_bk1", response)
+        saving_result(f"query_parameters_old_bk1", query_parameters)
+        saving_result(f"messages_old_bk1", messages)
 
     return query_parameters

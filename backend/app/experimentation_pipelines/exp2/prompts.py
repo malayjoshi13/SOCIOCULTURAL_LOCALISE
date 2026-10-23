@@ -1,7 +1,36 @@
-import os
-import json
-
-
+# This function constructs the prompt for the initial and subsequent 
+# content-analysis interactions with the user.
+#
+# This prompt:
+# - Assigns the model the role of a cultural mediator responsible for
+#   identifying culture-specific items (CSIs), classifying their familiarity,
+#   justifying their identification, and providing concise explanations.
+#
+# - During the initial interaction (previous=False), to identify CSIs via `get_initial_prompt` function,
+#   it instructs the model to use only the user's basic demographic information (like country, region, and age group.
+# - Other user profile attributes (namely, political_awareness, education_level, 
+#   literature_preference, and food_cuisine, with respective default values of "No", "Primary", "English" 
+#   and "American") are intentionally ignored to be used during this initial interaction.
+#   Therefore, during current initial interaction, this pipeline's generated prompt is essentially 
+#   same as exp1 prompt.
+#
+# - During subsequent interactions (previous=True), to identify CSIs via `get_initial_prompt` function, 
+#   it: 1) uses basic demographic description (like age, country and region), 
+#   2) uses `proxy_desc` which uses four additional user attributes (of political awareness, 
+#   education level, literature preference, and food/cuisine preference),
+#   and 3) instructs model to consider accumulated interaction history (aka 
+#   appended selected or deselected spans). 
+#   Therefore, during subsequent interactions, this pipeline's generated prompt is different 
+#   from exp1 prompt.
+# - During this subsequent interaction, it update values of only two semantic proxies (namely, political-awareness 
+#   and food/cuisine) using user’s previous annotation feedback interaction, while other two proxies (namely, education level and 
+#   literature preference) carrying forward their default/initial values, i.e. in subsequent interactions, 
+#   the values of attributes within `proxy_desc' are as follows:
+#   1) political_awareness = updated as per inferred from user feedback, 
+#   2) food_cuisine = updated as per inferred from user feedback, 
+#   3) education_level = "Primary"; carried forward from default value, 
+#   and 4) literature_preference = "English"; carried forward from default value.
+# - Defines the required JSON response structure.
 def get_initial_prompt(text, country, region, age_group, 
                        political_awareness, education_level, literature_preference, food_cuisine, 
                        previous=False):
@@ -54,6 +83,19 @@ def get_initial_prompt(text, country, region, age_group,
     return prompt
 
 
+# This function constructs a profile-update prompt when the user 
+# saves selected or deselected spans in NER Annotator UI.
+#
+# This profile-update prompt is developed via:
+# - Incorporating the selected and deselected spans supplied in `difference_spans`.
+# - Asking a LLM model to infer updated values for two semantic profile attributes, 
+#   namely, `political_awareness` and `food_cuisine`, based on the user's familiarity with these spans.
+# - Does not infer/update other two attributes of `education_level` or `literature_preference`; 
+#   thus their existing values are carried forward unchanged.
+#
+# This function then sends this prompt to the conversation history, and during
+# the next content-analysis interaction, the code flow of function `get_initial_prompt` corresponding `previous=True`,
+# instructs model to consider this accumulated history of updated user profile prompt/description.
 def get_update_prompt(difference_spans):
 
     ai_rules = """
