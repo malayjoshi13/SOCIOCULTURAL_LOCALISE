@@ -5,3 +5,4 @@ app/users.json
 venv/
 outputs/
 .DS_Store
+save_debugging_results/

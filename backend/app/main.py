@@ -9,6 +9,13 @@ from bs4 import BeautifulSoup
 import datetime
 import json
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+load_dotenv()
+BACKEND_ENDPOINT_FROM_ENV = os.getenv(
+    "BACKEND_ENDPOINT",
+    "backend_exp1"
+)
 
 # take statics from env 
 
@@ -84,7 +91,7 @@ def register():
 @app.route('/gateway', methods=['POST'])
 def predict():
     query_parameters = request.json
-    backend_endpoint = request.args.get('backend_endpoint') or 'backend_exp1'
+    backend_endpoint = request.args.get('backend_endpoint') or BACKEND_ENDPOINT_FROM_ENV
     env = request.args.get('env')
 
     # ===== ADD THESE DEBUG LINES =====  
