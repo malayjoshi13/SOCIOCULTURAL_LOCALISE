@@ -37,9 +37,9 @@ def get_initial_prompt(text, country, region, age_group, political_awareness,
     ai_rules = """
         # AI Rules
         - Output response in JSON format
-        - Everything should be inside {}
-        - JSON keys and values in double-quotes
         - Do not output any extra text. 
+        - Do not wrap the json codes in JSON or Python markers
+        - JSON keys and values in double-quotes
         """
 
     role = """You are a cultural mediator who understands all cultures across the world."""
@@ -48,10 +48,10 @@ def get_initial_prompt(text, country, region, age_group, political_awareness,
 
     client_desc = f"""I am a well-educated {age_group} person who grew up in {region} {country}, which defines my culture."""
 
-    if(political_awareness == "yes"):
-        politically_aware = f"""I am politically aware"""
+    if(political_awareness.lower() == "yes"):
+        politically_aware = f"""politically aware"""
     else:
-        politically_aware = f"""I am not poltically aware"""
+        politically_aware = f"""not politically aware"""
 
     proxy_desc = f"""I have received {education_level} education and I am {politically_aware}. I prefer reading {literature_preference} literature and I am fond of {food_cuisine} cuisine."""
 
@@ -68,9 +68,10 @@ def get_initial_prompt(text, country, region, age_group, political_awareness,
 
     task3 = """Task 3: Within 50 words, detail your reason for highlighting the span as CSI in Task 1 by correlating it with my background."""
 
-    task4 = """Task 4: Reformulate the entire text to make it more understandable to me. Keep the length similar to the original review text."""
+    task4 = """Task 4: Explain each CSI span within 20 words to make it more understandable to your client. Provide facts, examples, equivalences, analogies, etc, if needed."""
 
-    formatting = """Format your response as a valid Python dictionary formatted as: {"spans": [List of Python dictionaries where each dictionary item is formatted as: {"CSI": <task 1: copy the CSI span from text>, "familiarity": <task 2: familiarity level name>, "reason": <task 3: reason within 50 words>}], "reformulation": <task 4: reformulate entire review text>}. Respond with {"spans": "None"} if you think I will not find anything difficult to understand."""
+    formatting = """Format your response as a valid Python dictionary formatted as: {"spans": [List of Python dictionaries where each dictionary item is formatted as: {"CSI": <task 1: copy the CSI span from text>, "familiarity": <task 2: familiarity level name>, "reason": <task 3: reason within 50 words>, "explanation": <task 4: explain the span within 20 words>}]. Respond with {"spans": "None"} if you think I will not find anything difficult to understand."""
+
 
     if(previous==True):
         tasks = f"""{task1_previous}\n\n{task2}\n\n{task3}\n\n{task4}\n\n{formatting}"""

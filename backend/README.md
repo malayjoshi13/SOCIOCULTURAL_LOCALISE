@@ -54,6 +54,16 @@ Create `app/users.json` (required by `/login` + `/register`):
 {}
 ```
 
+Create `app/url_to_text.json`:
+```json
+{}
+```
+This file `app/url_to_text.json`, is used when a request includes a URL instead of raw text; it maps each URL to the article text that should be analyzed:
+
+```json
+{"https://example.com/article": "Full article text to use as fallback input for the LLM pipeline."}
+```
+
 ## Run
 
 ```sh
