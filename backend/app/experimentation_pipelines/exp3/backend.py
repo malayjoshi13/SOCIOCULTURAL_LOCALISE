@@ -98,7 +98,7 @@ def get_explanations(response):
     explanations = []
 
     for span in filtered_spans:
-        explanations.append({"CSI": span['CSI'], "explanation": span['explanation']})
+        explanations.append({"CSI": span['CSI'], "explanation": span.get('explanation', '')})
 
     return explanations
 
@@ -196,7 +196,7 @@ def get_response_from_backend_exp3(query_parameters):
     if(type_ == 'fresh'):
         # Upon receiving a 'type_ = fresh' request from ner-annotator, the backend builds the initial prompt with previous=False. 
         # Then the LLM identifies CSIs and returns familiarity labels and explanations.
-        # Then frontend displays the resulting highli
+        # Then frontend displays the resulting highlights.
         response, messages = get_response_initial_prompt(text, country, region, age_group, 
                                                          political_awareness, education_level, literature_preference, food_cuisine,
                                                          messages, previous=False)
