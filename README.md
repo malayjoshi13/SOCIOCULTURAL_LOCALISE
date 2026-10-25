@@ -28,6 +28,6 @@ This project builds on [CULTURALLY YOURS: A Reading Assistant for Cross-Cultural
 
 Building on CULTURALLY YOURS, SOCIOCULTURAL_LOCALISE investigates the direction that how these approaches can be extended to educational content while accounting for learner context and pedagogical objectives.
 
-Initial groundwork towards this direction has been taken, this includes backend restructuring, improved deployment portability, pipeline reliability fixes, centralized API configuration, and expanded technical documentation. See the [upstream derivation and change record](UPSTREAM_DERIVATION.md) for a verified, PR-level breakdown.
+Initial groundwork towards this direction has been taken, this includes backend restructuring, improved deployment portability, pipeline reliability fixes, centralized API configuration, and expanded technical documentation. See the [upstream derivation and change record](UPSTREAM_DERIVATIONS.md) for a verified, PR-level breakdown.
 
 The original authors retain credit for their work. Refer to the [upstream repository](https://github.com/skp1999/CULTURALLY_YOURS) for implementation details and licensing terms. Additional attribution will follow the applicable licence and contribution requirements.
